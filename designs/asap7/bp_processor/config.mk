@@ -2,6 +2,8 @@ export DESIGN_NICKNAME ?= bp_quad
 export DESIGN_NAME = bp_processor
 export PLATFORM    = asap7
 
+export DEV_DESIGN_HOME = $(DESIGN_NAME)/dev
+
 export SYNTH_HIERARCHICAL = 1
 export SYNTH_MINIMUM_KEEP_SIZE = 500
 
