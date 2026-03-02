@@ -64,7 +64,7 @@ else
     curl -sSL -o "$SV2V_ZIP" \
         "https://github.com/zachjs/sv2v/releases/download/v0.0.13/sv2v-Linux.zip"
     unzip -o "$SV2V_ZIP" -d sv2v_extract
-    cp sv2v_extract/sv2v ./sv2v
+    cp sv2v_extract/sv2v-Linux/sv2v ./sv2v
     chmod +x ./sv2v
     rm -rf "$SV2V_ZIP" sv2v_extract
     SV2V="./sv2v"
