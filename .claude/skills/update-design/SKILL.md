@@ -1,12 +1,75 @@
 ---
 name: update-design
-description: Update an existing HighTide2 design for new upstream source changes, tool updates, or flow tuning. Use when a design needs to be refreshed or its configuration adjusted.
-argument-hint: "[design-name] [platform]"
+description: Check for upstream updates to existing HighTide2 designs and tools, summarize what changed, and apply updates. Use when a design needs to be refreshed, or with no arguments to audit all designs for available updates.
+argument-hint: "[design-name or 'all'] [platform]"
 ---
 
 # Update an Existing Design
 
-You are updating the design `$0` on platform `$1`. First, determine what kind of update is needed by asking the user or inferring from context.
+If `$ARGUMENTS` is empty or `all`, run the **Upstream Audit** first. Otherwise, you are updating the design `$0` on platform `$1` — determine what kind of update is needed by asking the user or inferring from context.
+
+## Upstream Audit
+
+Check all designs and their tool dependencies for upstream changes. Present a summary so the user can decide what's worth updating.
+
+### 1. Audit design submodules
+
+For each design submodule in `.gitmodules`, compare the pinned commit to upstream HEAD:
+
+```bash
+# For each submodule path (e.g., designs/src/minimax/dev/repo):
+git -C <submodule-path> rev-parse HEAD          # our pinned commit
+git -C <submodule-path> ls-remote origin HEAD    # upstream latest
+```
+
+If the submodule is not initialized, use `git ls-remote` with the URL from `.gitmodules` and compare against the commit recorded in the superproject:
+```bash
+git ls-submodule <submodule-path>                # pinned commit in superproject
+git ls-remote <url> HEAD                         # upstream latest
+```
+
+For each submodule that has new commits upstream, summarize:
+- **Design name** and upstream repo URL
+- **Commits behind**: how many commits between pinned and upstream HEAD
+- **Recency**: date of the most recent upstream commit
+- **Extent of changes**: use `git log --oneline <pinned>..origin/HEAD` (or the GitHub API via `gh api`) to show a summary of what changed. Categorize as:
+  - **Minor**: documentation, CI, test-only changes, cosmetic fixes
+  - **Moderate**: bug fixes, small feature additions, dependency bumps
+  - **Major**: new features, architectural changes, API/interface changes, new memory modules
+- **Recommendation**: whether the changes are likely to affect generated RTL or just ancillary files
+
+### 2. Audit tool dependencies in setup.sh files
+
+For each design with a `setup.sh`, check pinned tool versions against latest:
+- **pip packages pinned to git commits** (e.g., migen, litex, liteeth in `designs/src/liteeth/dev/setup.sh`): check if the pinned commit is behind the upstream default branch
+- **pip packages pinned to versions** (e.g., `pyyaml==6.0.2`): check PyPI for newer versions
+- **Tool binaries** (sv2v, JDK, sbt): note the pinned version and whether a newer release exists
+
+Summarize each with the same minor/moderate/major classification.
+
+### 3. Audit ORFS submodule
+
+Check `OpenROAD-flow-scripts` for upstream updates:
+```bash
+git -C OpenROAD-flow-scripts log --oneline HEAD..origin/main | head -20
+```
+Summarize the nature of ORFS changes (new features, bug fixes, platform updates, etc.).
+
+### 4. Present summary table
+
+Format the results as a table:
+
+```
+| Design/Tool        | Pinned     | Upstream   | Behind | Last Activity | Severity | Recommendation     |
+|--------------------|------------|------------|--------|---------------|----------|--------------------|
+| minimax            | abc1234    | def5678    | 12     | 2026-02-15    | Moderate | Bug fixes, review  |
+| liteeth            | ef5f9ee    | 1a2b3c4    | 45     | 2026-03-10    | Major    | New features       |
+| verilog-lfsr       | 789abcd    | 789abcd    | 0      | 2025-01-03    | -        | Up to date         |
+| litex (pip)        | a25eeec    | b36ff0d    | 8      | 2026-03-12    | Minor    | Docs only          |
+| ORFS               | v3.0-...   | v3.1-...   | 200+   | 2026-03-14    | Major    | Platform updates   |
+```
+
+Let the user decide which updates to apply. Small changes that don't affect RTL generation (docs, tests, CI) are usually not worth updating for. Major changes that affect RTL output, fix synthesis bugs, or add new features are worth considering.
 
 ## Types of Updates
 
