@@ -23,10 +23,10 @@ And should meet at least one of these motivations:
 
 ## Design Categories to Consider
 
-- **Processors**: RISC-V cores (various pipeline depths), GPUs, DSPs
-- **Accelerators**: ML/AI accelerators, cryptographic engines, signal processing, compression
+- **Processors**: Avoid proposing standalone RISC-V cores — the suite already has several (minimax, NyuziProcessor) and more are proposed (BlackParrot, Vortex GPGPU). Only propose a processor if it's part of an interesting SoC or uses a novel HDL not yet in the suite.
+- **Accelerators**: ML/AI accelerators, cryptographic engines, signal processing (FFT, FIR), compression
 - **Peripherals**: Network controllers (Ethernet, USB, PCIe, SPI, I2C, UART), memory controllers, DMA engines
-- **SoC components**: Bus interconnects, cache hierarchies, interrupt controllers
+- **SoC components**: Bus interconnects, cache hierarchies, interrupt controllers, NoC routers
 - **Domain-specific**: Video/image processing, audio, software-defined radio
 
 ## Current Designs (do NOT propose duplicates)
